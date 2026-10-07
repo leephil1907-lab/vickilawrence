@@ -31,7 +31,7 @@
   if (year) year.textContent = new Date().getFullYear();
 
 
-  // Shoutout form: live submissions stay disabled until an authorized Formspree endpoint is configured.
+  // Special-request submission: deliberately disabled until an authorized endpoint is configured.
   const shoutoutForm = document.getElementById('shoutoutForm');
   const shoutoutType = document.getElementById('shoutoutRequestType');
   const selectedRequest = document.getElementById('selectedRequest');
@@ -39,6 +39,7 @@
   const shoutoutSubmit = document.getElementById('shoutoutSubmit');
   const paymentArea = document.getElementById('paymentArea');
   const paymentButton = document.getElementById('paymentButton');
+  const configuredPaymentLink = '';
 
   if (shoutoutType && selectedRequest) {
     shoutoutType.addEventListener('change', () => {
@@ -52,7 +53,7 @@
       const endpoint = shoutoutForm.action;
       if (endpoint.includes('YOUR_FORM_ID')) {
         shoutoutStatus.className = 'form-status error';
-        shoutoutStatus.textContent = 'Connect the authorized Formspree endpoint before enabling live submissions.';
+        shoutoutStatus.textContent = 'Connect the authorized request endpoint before enabling live submissions.';
         return;
       }
       shoutoutStatus.className = 'form-status';
@@ -62,73 +63,21 @@
         const response = await fetch(endpoint, {
           method: 'POST',
           body: new FormData(shoutoutForm),
-          headers: {Accept: 'application/json'}
+          headers: { Accept: 'application/json' }
         });
         if (!response.ok) throw new Error('Request submission failed');
         shoutoutStatus.className = 'form-status success';
         shoutoutStatus.textContent = 'Thank you. Your request has been submitted for review.';
         shoutoutForm.reset();
         if (selectedRequest) selectedRequest.textContent = 'Select a request type';
-        // Payment is deliberately not activated until an authorized Stripe Payment Link is configured.
-        if (paymentArea) paymentArea.hidden = true;
-        if (paymentButton) paymentButton.hidden = true;
+        if (paymentArea) paymentArea.hidden = !configuredPaymentLink;
+        if (paymentButton && configuredPaymentLink) {
+          paymentButton.href = configuredPaymentLink;
+          paymentButton.hidden = false;
+        }
       } catch (error) {
         shoutoutStatus.className = 'form-status error';
         shoutoutStatus.textContent = 'Something went wrong. Please try again or contact support.';
-      } finally {
-        shoutoutSubmit.disabled = false;
-      }
-    });
-  }
-
-
-  const shoutoutForm = document.getElementById('shoutoutForm');
-  if (shoutoutForm) {
-    const requestTypeField = document.getElementById('requestType');
-    const selectedRequest = document.getElementById('selectedRequest');
-    const formStatus = document.getElementById('formStatus');
-    const shoutoutSubmit = document.getElementById('shoutoutSubmit');
-    const paymentLink = document.getElementById('paymentLink');
-    const configuredPaymentLink = ''; // Add an authorized Stripe Payment Link here before launch.
-
-    requestTypeField?.addEventListener('change', () => {
-      if (selectedRequest) selectedRequest.textContent = requestTypeField.value || 'Select a request type';
-    });
-
-    shoutoutForm.addEventListener('submit', async event => {
-      event.preventDefault();
-      const endpoint = shoutoutForm.action;
-      if (endpoint.includes('YOUR_FORM_ID')) {
-        formStatus.className = 'form-status error';
-        formStatus.textContent = 'Connect the authorized Formspree endpoint before enabling live submissions.';
-        return;
-      }
-
-      formStatus.className = 'form-status';
-      formStatus.textContent = 'Submitting your request...';
-      shoutoutSubmit.disabled = true;
-      if (paymentLink) paymentLink.hidden = true;
-
-      try {
-        const response = await fetch(endpoint, {
-          method: 'POST',
-          body: new FormData(shoutoutForm),
-          headers: { Accept: 'application/json' }
-        });
-        if (!response.ok) throw new Error('Request submission failed');
-
-        formStatus.className = 'form-status success';
-        formStatus.textContent = 'Thank you. Your request has been submitted for review.';
-        shoutoutForm.reset();
-        if (selectedRequest) selectedRequest.textContent = 'Select a request type';
-
-        if (configuredPaymentLink && paymentLink) {
-          paymentLink.href = configuredPaymentLink;
-          paymentLink.hidden = false;
-        }
-      } catch (error) {
-        formStatus.className = 'form-status error';
-        formStatus.textContent = 'Something went wrong. Please try again or contact support.';
       } finally {
         shoutoutSubmit.disabled = false;
       }
