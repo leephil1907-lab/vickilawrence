@@ -311,18 +311,7 @@ create policy "admins manage notifications" on public.notifications
 for all to authenticated using ((select auth.jwt()->'app_metadata'->>'role')='admin')
 with check ((select auth.jwt()->'app_metadata'->>'role')='admin');
 
-do $
-begin
-  if not exists (select 1 from pg_publication_tables where pubname='supabase_realtime' and schemaname='public' and tablename='works') then
-    alter publication supabase_realtime add table public.works;
-  end if;
-  if not exists (select 1 from pg_publication_tables where pubname='supabase_realtime' and schemaname='public' and tablename='products') then
-    alter publication supabase_realtime add table public.products;
-  end if;
-  if not exists (select 1 from pg_publication_tables where pubname='supabase_realtime' and schemaname='public' and tablename='fan_posts') then
-    alter publication supabase_realtime add table public.fan_posts;
-  end if;
-  if not exists (select 1 from pg_publication_tables where pubname='supabase_realtime' and schemaname='public' and tablename='notifications') then
-    alter publication supabase_realtime add table public.notifications;
-  end if;
-end $;
+alter publication supabase_realtime add table public.works;
+alter publication supabase_realtime add table public.products;
+alter publication supabase_realtime add table public.fan_posts;
+alter publication supabase_realtime add table public.notifications;
