@@ -1,15 +1,18 @@
 # Vicki Lawrence — Digital Archive
 
-Premium multi-page archive experience for Vicki Lawrence, built around television, comedy, music, stage work and career history.
+Premium multi-page **dynamic digital archive** for Vicki Lawrence, built around television, comedy, music, stage work and career history.
 
 ## Included
 - Cinematic responsive public website
-- 3D/atmospheric hero with accessible carousel
+- Three.js archive worlds with CSS fallbacks and reduced-motion support
+- WebGL-inspired image depth, atmospheric lighting and kinetic editorial motion
+- Curated Cormorant Garamond / DM Sans / Manrope typography
+- Accessible hero carousel
 - Live visitor support chat
 - Private admin control center
 - Announcements, events, requests and media management UI
 - Invoice creator with print/PDF export
-- Supabase-ready Auth, Realtime, Storage and RLS schema
+- Supabase Auth, Realtime, Storage and RLS-backed live publishing
 - Reduced-motion and keyboard-accessible interactions
 
 ## Admin
@@ -22,4 +25,4 @@ Run `supabase/schema.sql` in the project database, then create the first admin a
 Approved/licensed Vicki Lawrence photography, logos, icons and signature assets must be supplied before public production use. The repository does not fabricate those assets.
 
 ## Status
-Production-ready front-end foundation; Supabase-backed dynamic publishing becomes live after the project's credentials, policies and authorized content are configured.
+Dynamic production architecture is in place: public pages can receive live Supabase announcements, events and gallery updates, while immersive Three.js scenes enhance the editorial experience. Official/licensed photography, authorized content, Supabase provider configuration and final deployment verification remain required before public launch.
