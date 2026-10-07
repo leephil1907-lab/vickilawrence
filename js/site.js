@@ -81,6 +81,60 @@
     });
   }
 
+
+  const shoutoutForm = document.getElementById('shoutoutForm');
+  if (shoutoutForm) {
+    const requestTypeField = document.getElementById('requestType');
+    const selectedRequest = document.getElementById('selectedRequest');
+    const formStatus = document.getElementById('formStatus');
+    const shoutoutSubmit = document.getElementById('shoutoutSubmit');
+    const paymentLink = document.getElementById('paymentLink');
+    const configuredPaymentLink = ''; // Add an authorized Stripe Payment Link here before launch.
+
+    requestTypeField?.addEventListener('change', () => {
+      if (selectedRequest) selectedRequest.textContent = requestTypeField.value || 'Select a request type';
+    });
+
+    shoutoutForm.addEventListener('submit', async event => {
+      event.preventDefault();
+      const endpoint = shoutoutForm.action;
+      if (endpoint.includes('YOUR_FORM_ID')) {
+        formStatus.className = 'form-status error';
+        formStatus.textContent = 'Connect the authorized Formspree endpoint before enabling live submissions.';
+        return;
+      }
+
+      formStatus.className = 'form-status';
+      formStatus.textContent = 'Submitting your request...';
+      shoutoutSubmit.disabled = true;
+      if (paymentLink) paymentLink.hidden = true;
+
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          body: new FormData(shoutoutForm),
+          headers: { Accept: 'application/json' }
+        });
+        if (!response.ok) throw new Error('Request submission failed');
+
+        formStatus.className = 'form-status success';
+        formStatus.textContent = 'Thank you. Your request has been submitted for review.';
+        shoutoutForm.reset();
+        if (selectedRequest) selectedRequest.textContent = 'Select a request type';
+
+        if (configuredPaymentLink && paymentLink) {
+          paymentLink.href = configuredPaymentLink;
+          paymentLink.hidden = false;
+        }
+      } catch (error) {
+        formStatus.className = 'form-status error';
+        formStatus.textContent = 'Something went wrong. Please try again or contact support.';
+      } finally {
+        shoutoutSubmit.disabled = false;
+      }
+    });
+  }
+
   // Fan experience UI is intentionally preview-only until official authorization and secure backend workflows exist.
   const cardForm = document.getElementById('cardForm');
   if (cardForm) {
