@@ -77,7 +77,7 @@
 
   function realtime(){
     if(!client)return;
-    client.channel('archive-live').on('postgres_changes',{event:'*',schema:'public',table:'announcements'},()=>dynamicHome()).on('postgres_changes',{event:'*',schema:'public',table:'events'},()=>dynamicEvents()).on('postgres_changes',{event:'*',schema:'public',table:'gallery_items'},()=>dynamicGallery()).subscribe();
+    client.channel('archive-live').on('postgres_changes',{event:'*',schema:'public',table:'announcements'},()=>{dynamicHome();dynamicNews()}).on('postgres_changes',{event:'*',schema:'public',table:'events'},()=>dynamicEvents()).on('postgres_changes',{event:'*',schema:'public',table:'gallery_items'},()=>dynamicGallery()).subscribe();
   }
 
   function mount3D(){
