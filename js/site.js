@@ -370,12 +370,34 @@
     document.head.appendChild(style);
   }
 
+  const newsletterForm=document.querySelector('#newsletterForm');
+  if(newsletterForm && window.supabase && window.VL_PUBLIC_CONFIG?.supabaseUrl){
+    const sb=window.supabase.createClient(window.VL_PUBLIC_CONFIG.supabaseUrl,window.VL_PUBLIC_CONFIG.supabasePublishableKey);
+    newsletterForm.addEventListener('submit',async e=>{
+      e.preventDefault();
+      const status=document.querySelector('#newsletterStatus');
+      const q=await sb.from('newsletter_subscribers').upsert({first_name:document.querySelector('#newsletterName')?.value.trim()||null,email:document.querySelector('#newsletterEmail').value.trim().toLowerCase(),status:'subscribed',source:'website',updated_at:new Date().toISOString()},{onConflict:'email'});
+      status.textContent=q.error?'Unable to subscribe right now. Please try again later.':'You’re on the archive dispatch list.';
+      if(!q.error) newsletterForm.reset();
+    });
+  }
+
+  const cookieKey='vl-cookie-choice';
+  if(!localStorage.getItem(cookieKey)){
+    const banner=document.createElement('div');
+    banner.className='cookie-banner';
+    banner.innerHTML='<div><strong>Archive privacy</strong><p>This site uses essential storage for account, language and accessibility preferences. Optional analytics should only be enabled after consent.</p></div><button type="button" class="btn btn-gold">Accept</button><button type="button" class="btn btn-ghost">Dismiss</button>';
+    banner.querySelectorAll('button')[0].onclick=()=>{localStorage.setItem(cookieKey,'accepted');banner.remove()};
+    banner.querySelectorAll('button')[1].onclick=()=>{localStorage.setItem(cookieKey,'dismissed');banner.remove()};
+    document.body.appendChild(banner);
+  }
+
   // Global brand contact + account controls. Destinations are icon-only on the public site.
   const navLinks=document.querySelector('.nav-links');
-  if(navLinks && !navLinks.querySelector('[data-account-link]')){
-    const account=document.createElement('a');
-    account.href='account.html'; account.dataset.accountLink='true'; account.textContent='Account';
-    navLinks.appendChild(account);
+  if(navLinks && !navLinks.querySelector('[data-archive-links]')){
+    const extra=document.createDocumentFragment();
+    [['shop.html','Shop'],['fan-wall.html','Fan Wall'],['account.html','Account']].forEach(([href,label])=>{const a=document.createElement('a');a.href=href;a.textContent=label;a.dataset.archiveLinks='true';extra.appendChild(a)});
+    navLinks.appendChild(extra);
   }
   const footer=document.querySelector('footer .footer-inner');
   if(footer && !footer.querySelector('.social-links')){
