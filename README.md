@@ -13,6 +13,9 @@ Premium multi-page **dynamic digital archive** for Vicki Lawrence, built around 
 - Announcements, events, requests and media management UI
 - Invoice creator with print/PDF export
 - Supabase Auth, Realtime, Storage and RLS-backed live publishing
+- Filterable live works catalog
+- Newsletter capture and moderated fan wall
+- Archive shop CMS with secure checkout handoff
 - Reduced-motion and keyboard-accessible interactions
 
 ## Admin
@@ -25,4 +28,4 @@ Run `supabase/schema.sql` in the project database, then create the first admin a
 Approved/licensed Vicki Lawrence photography, logos, icons and signature assets must be supplied before public production use. The repository does not fabricate those assets.
 
 ## Status
-Dynamic production architecture is in place: public pages can receive live Supabase announcements, events and gallery updates, while immersive Three.js scenes enhance the editorial experience. Official/licensed photography, authorized content, Supabase provider configuration and final deployment verification remain required before public launch.
+Dynamic production architecture is in place: public pages can receive live Supabase announcements, events and gallery updates, while immersive Three.js scenes enhance the editorial experience. Official/licensed photography, authorized content, Supabase provider configuration, Stripe server-side checkout/fulfillment configuration, and final deployment verification remain required before public launch. The repository does not fabricate products, reviews, quotes, co-stars or celebrity authorization.
