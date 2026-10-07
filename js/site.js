@@ -31,6 +31,56 @@
   if (year) year.textContent = new Date().getFullYear();
 
 
+  // Shoutout form: live submissions stay disabled until an authorized Formspree endpoint is configured.
+  const shoutoutForm = document.getElementById('shoutoutForm');
+  const shoutoutType = document.getElementById('shoutoutRequestType');
+  const selectedRequest = document.getElementById('selectedRequest');
+  const shoutoutStatus = document.getElementById('formStatus');
+  const shoutoutSubmit = document.getElementById('shoutoutSubmit');
+  const paymentArea = document.getElementById('paymentArea');
+  const paymentButton = document.getElementById('paymentButton');
+
+  if (shoutoutType && selectedRequest) {
+    shoutoutType.addEventListener('change', () => {
+      selectedRequest.textContent = shoutoutType.value || 'Select a request type';
+    });
+  }
+
+  if (shoutoutForm) {
+    shoutoutForm.addEventListener('submit', async event => {
+      event.preventDefault();
+      const endpoint = shoutoutForm.action;
+      if (endpoint.includes('YOUR_FORM_ID')) {
+        shoutoutStatus.className = 'form-status error';
+        shoutoutStatus.textContent = 'Connect the authorized Formspree endpoint before enabling live submissions.';
+        return;
+      }
+      shoutoutStatus.className = 'form-status';
+      shoutoutStatus.textContent = 'Submitting your request...';
+      shoutoutSubmit.disabled = true;
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          body: new FormData(shoutoutForm),
+          headers: {Accept: 'application/json'}
+        });
+        if (!response.ok) throw new Error('Request submission failed');
+        shoutoutStatus.className = 'form-status success';
+        shoutoutStatus.textContent = 'Thank you. Your request has been submitted for review.';
+        shoutoutForm.reset();
+        if (selectedRequest) selectedRequest.textContent = 'Select a request type';
+        // Payment is deliberately not activated until an authorized Stripe Payment Link is configured.
+        if (paymentArea) paymentArea.hidden = true;
+        if (paymentButton) paymentButton.hidden = true;
+      } catch (error) {
+        shoutoutStatus.className = 'form-status error';
+        shoutoutStatus.textContent = 'Something went wrong. Please try again or contact support.';
+      } finally {
+        shoutoutSubmit.disabled = false;
+      }
+    });
+  }
+
   // Fan experience UI is intentionally preview-only until official authorization and secure backend workflows exist.
   const cardForm = document.getElementById('cardForm');
   if (cardForm) {
