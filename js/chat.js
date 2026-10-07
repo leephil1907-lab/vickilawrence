@@ -40,7 +40,7 @@
 
   const init=async()=>{
     if(ready) return;
-    if(!CONFIG.url||!CONFIG.publishableKey){
+    if(!CONFIG.supabaseUrl||!CONFIG.supabasePublishableKey){
       showError('Live support is ready in the interface, but the secure support backend still needs to be connected.');
       return;
     }
