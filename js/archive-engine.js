@@ -89,6 +89,7 @@
 
   function boot(){
     mountLiveRail();mountDynamicDock();injectRealtimeBanner();mount3D();dynamicHome();dynamicNews();dynamicEvents();dynamicGallery();realtime();
+    import('./archive-world.js').catch(()=>{});
     document.body.classList.add('archive-runtime');
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
