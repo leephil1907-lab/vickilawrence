@@ -1,0 +1,1 @@
+window.VL_PUBLIC_CONFIG = { supabaseUrl: '', supabasePublishableKey: '' };
