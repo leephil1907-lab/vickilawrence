@@ -209,3 +209,109 @@ alter publication supabase_realtime add table public.support_conversations;
 alter publication supabase_realtime add table public.support_messages;
 alter publication supabase_realtime add table public.announcements;
 alter publication supabase_realtime add table public.events;
+
+
+-- Dynamic archive expansion: works, newsletter, merch, fan community and notification feeds.
+create table if not exists public.works (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  work_type text not null check (work_type in ('television','film','music','stage','voice','other')),
+  year integer,
+  description text,
+  poster_url text,
+  trailer_url text,
+  credits jsonb not null default '{}'::jsonb,
+  featured boolean not null default false,
+  published boolean not null default false,
+  created_by uuid,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.newsletter_subscribers (
+  id uuid primary key default gen_random_uuid(),
+  email text unique not null,
+  first_name text,
+  status text not null default 'subscribed' check (status in ('subscribed','unsubscribed')),
+  source text default 'website',
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.products (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  description text,
+  image_url text,
+  price numeric(12,2) not null default 0,
+  currency text not null default 'USD' check (currency in ('USD','EUR')),
+  stripe_price_id text,
+  checkout_url text,
+  inventory integer,
+  published boolean not null default false,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.fan_posts (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid,
+  display_name text not null,
+  body text not null,
+  media_url text,
+  post_type text not null default 'message' check (post_type in ('message','fan_art','submission')),
+  status text not null default 'pending' check (status in ('pending','approved','rejected')),
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.notifications (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  body text not null,
+  target text not null default 'all' check (target in ('all','members','vip')),
+  published boolean not null default false,
+  created_at timestamptz not null default now()
+);
+
+alter table public.works enable row level security;
+alter table public.newsletter_subscribers enable row level security;
+alter table public.products enable row level security;
+alter table public.fan_posts enable row level security;
+alter table public.notifications enable row level security;
+
+create policy "public reads published works" on public.works
+for select to anon, authenticated using (published = true);
+create policy "admins manage works" on public.works
+for all to authenticated using ((select auth.jwt()->'app_metadata'->>'role')='admin')
+with check ((select auth.jwt()->'app_metadata'->>'role')='admin');
+
+create policy "public subscribes newsletter" on public.newsletter_subscribers
+for insert to anon, authenticated with check (status = 'subscribed');
+create policy "admins manage newsletter" on public.newsletter_subscribers
+for all to authenticated using ((select auth.jwt()->'app_metadata'->>'role')='admin')
+with check ((select auth.jwt()->'app_metadata'->>'role')='admin');
+
+create policy "public reads published products" on public.products
+for select to anon, authenticated using (published = true);
+create policy "admins manage products" on public.products
+for all to authenticated using ((select auth.jwt()->'app_metadata'->>'role')='admin')
+with check ((select auth.jwt()->'app_metadata'->>'role')='admin');
+
+create policy "authenticated submit fan posts" on public.fan_posts
+for insert to authenticated with check (user_id = (select auth.uid()));
+create policy "public reads approved fan posts" on public.fan_posts
+for select to anon, authenticated using (status = 'approved');
+create policy "admins manage fan posts" on public.fan_posts
+for all to authenticated using ((select auth.jwt()->'app_metadata'->>'role')='admin')
+with check ((select auth.jwt()->'app_metadata'->>'role')='admin');
+
+create policy "public reads published notifications" on public.notifications
+for select to authenticated using (published = true);
+create policy "admins manage notifications" on public.notifications
+for all to authenticated using ((select auth.jwt()->'app_metadata'->>'role')='admin')
+with check ((select auth.jwt()->'app_metadata'->>'role')='admin');
+
+alter publication supabase_realtime add table public.works;
+alter publication supabase_realtime add table public.products;
+alter publication supabase_realtime add table public.fan_posts;
+alter publication supabase_realtime add table public.notifications;
