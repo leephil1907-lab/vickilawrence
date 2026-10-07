@@ -31,6 +31,109 @@
   if (year) year.textContent = new Date().getFullYear();
 
   const scene = document.querySelector('.scene');
+
+  async function mountThreeScene() {
+    if (!scene || reduce || !window.WebGLRenderingContext) return;
+    try {
+      const THREE = await import('https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js');
+      const canvas = document.createElement('canvas');
+      canvas.setAttribute('aria-hidden', 'true');
+      canvas.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none';
+      scene.appendChild(canvas);
+
+      const renderer = new THREE.WebGLRenderer({canvas, alpha:true, antialias:true, powerPreference:'high-performance'});
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
+      renderer.setSize(scene.clientWidth, scene.clientHeight, false);
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+      const camera = new THREE.PerspectiveCamera(38, scene.clientWidth / scene.clientHeight, .1, 100);
+      camera.position.set(0, 1.4, 10);
+
+      const world = new THREE.Scene();
+      const ambient = new THREE.HemisphereLight(0xf7f3ea, 0x143a68, 1.6);
+      world.add(ambient);
+      const key = new THREE.PointLight(0xf2c15b, 65, 24);
+      key.position.set(0, 5, 5);
+      world.add(key);
+
+      const floor = new THREE.Mesh(
+        new THREE.CylinderGeometry(7, 8, .25, 64),
+        new THREE.MeshStandardMaterial({color:0x0e2948,roughness:.78,metalness:.12})
+      );
+      floor.position.y = -3;
+      floor.rotation.x = Math.PI / 2;
+      world.add(floor);
+
+      const frame = new THREE.Mesh(
+        new THREE.BoxGeometry(7.1, 4.8, .35),
+        new THREE.MeshStandardMaterial({color:0xf2c15b,roughness:.4,metalness:.45})
+      );
+      frame.position.set(0, 1.15, -1.2);
+      world.add(frame);
+
+      const screen = new THREE.Mesh(
+        new THREE.BoxGeometry(6.55, 4.25, .28),
+        new THREE.MeshStandardMaterial({color:0x102d52,roughness:.32,metalness:.18,emissive:0x081a30,emissiveIntensity:.55})
+      );
+      screen.position.set(0, 1.15, -1.02);
+      world.add(screen);
+
+      const reelMat = new THREE.MeshStandardMaterial({color:0xd99a26,roughness:.45,metalness:.5});
+      for (const x of [-4.3,4.3]) {
+        const reel = new THREE.Mesh(new THREE.TorusGeometry(1.05,.08,12,48), reelMat);
+        reel.position.set(x, 2.2, -2.2);
+        reel.rotation.y = Math.PI / 2;
+        world.add(reel);
+      }
+
+      const stars = new THREE.BufferGeometry();
+      const positions = new Float32Array(180 * 3);
+      for(let i=0;i<180;i++){
+        positions[i*3]=(Math.random()-.5)*18;
+        positions[i*3+1]=(Math.random()-.5)*11;
+        positions[i*3+2]=(Math.random()-.5)*8-1;
+      }
+      stars.setAttribute('position',new THREE.BufferAttribute(positions,3));
+      const starPoints = new THREE.Points(stars,new THREE.PointsMaterial({color:0xf2c15b,size:.025,transparent:true,opacity:.55}));
+      world.add(starPoints);
+
+      let mx=0,my=0,cx=0,cy=0;
+      scene.addEventListener('pointermove',e=>{
+        const r=scene.getBoundingClientRect();
+        mx=((e.clientX-r.left)/r.width-.5);
+        my=((e.clientY-r.top)/r.height-.5);
+      });
+
+      const resize=()=>{
+        const w=scene.clientWidth,h=scene.clientHeight;
+        camera.aspect=w/h;
+        camera.updateProjectionMatrix();
+        renderer.setSize(w,h,false);
+      };
+      window.addEventListener('resize',resize,{passive:true});
+
+      const animate=()=>{
+        cx+=(mx-cx)*.035;
+        cy+=(my-cy)*.035;
+        camera.position.x=cx*.7;
+        camera.position.y=1.4-cy*.45;
+        camera.lookAt(0,0,-1);
+        frame.rotation.y=cx*.025;
+        screen.rotation.y=cx*.025;
+        starPoints.rotation.y+=.00018;
+        renderer.render(world,camera);
+        requestAnimationFrame(animate);
+      };
+      animate();
+      resize();
+    } catch (error) {
+      console.info('3D enhancement unavailable; CSS scenery remains active.', error);
+    }
+  }
+
+  mountThreeScene();
+
+  const fallback = scene?.querySelector('.scene-fallback');
   if (scene && !reduce && window.matchMedia('(pointer:fine)').matches) {
     let tx = 0, ty = 0, x = 0, y = 0;
     scene.addEventListener('pointermove', e => {
@@ -45,11 +148,9 @@
       requestAnimationFrame(tick);
     };
     tick();
-    const fallback = scene.querySelector('.scene-fallback');
     if (fallback) fallback.style.transform = 'translate3d(var(--mx,0),var(--my,0),0) scale(1.04)';
   }
 
-  // Lightweight atmospheric particles; no dependency required.
   const particleLayer = document.querySelector('[data-particles]');
   if (particleLayer && !reduce) {
     const frag = document.createDocumentFragment();
