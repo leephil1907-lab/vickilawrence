@@ -5,6 +5,7 @@ create extension if not exists pgcrypto;
 
 create table if not exists public.support_conversations (
   id uuid primary key default gen_random_uuid(),
+  user_id uuid,
   visitor_name text,
   visitor_email text,
   status text not null default 'open' check (status in ('open','pending','closed')),
@@ -118,10 +119,26 @@ alter table public.gallery_items enable row level security;
 alter table public.activity_log enable row level security;
 
 -- Admin authorization uses server-controlled app_metadata.role.
+create policy "visitors create own conversations" on public.support_conversations
+for insert to authenticated
+with check (user_id = (select auth.uid()));
+
+create policy "visitors read own conversations" on public.support_conversations
+for select to authenticated
+using (user_id = (select auth.uid()));
+
 create policy "admins manage support conversations" on public.support_conversations
 for all to authenticated
 using ((select auth.jwt()->'app_metadata'->>'role') = 'admin')
 with check ((select auth.jwt()->'app_metadata'->>'role') = 'admin');
+
+create policy "visitors insert own messages" on public.support_messages
+for insert to authenticated
+with check (sender_type = 'visitor' and sender_id = (select auth.uid()) and exists (select 1 from public.support_conversations c where c.id = conversation_id and c.user_id = (select auth.uid())));
+
+create policy "visitors read own messages" on public.support_messages
+for select to authenticated
+using (exists (select 1 from public.support_conversations c where c.id = conversation_id and c.user_id = (select auth.uid())));
 
 create policy "admins manage support messages" on public.support_messages
 for all to authenticated
