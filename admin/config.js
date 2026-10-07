@@ -1,4 +1,1 @@
-window.VL_ADMIN_CONFIG = {
-  supabaseUrl: '',
-  supabasePublishableKey: ''
-};
+window.VL_ADMIN_CONFIG = { supabaseUrl: 'https://ihzbhilotzqmdonglkvr.supabase.co', supabasePublishableKey: 'sb_publishable_8oWS9L46cGKl9V-X0O3SzA_JtkbueVu' };
