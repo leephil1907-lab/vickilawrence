@@ -369,4 +369,22 @@
     style.textContent='@keyframes float{0%,100%{transform:translateY(0);opacity:.15}50%{transform:translateY(-30px);opacity:.7}}';
     document.head.appendChild(style);
   }
+
+  // Global brand contact + account controls. Destinations are icon-only on the public site.
+  const navLinks=document.querySelector('.nav-links');
+  if(navLinks && !navLinks.querySelector('[data-account-link]')){
+    const account=document.createElement('a');
+    account.href='account.html'; account.dataset.accountLink='true'; account.textContent='Account';
+    navLinks.appendChild(account);
+  }
+  const footer=document.querySelector('footer .footer-inner');
+  if(footer && !footer.querySelector('.social-links')){
+    const social=document.createElement('div');
+    social.className='social-links';
+    const email=String.fromCharCode(...[86,105,99,107,105,76,97,119,114,101,110,99,101,115,104,111,119,64,103,109,97,105,108,46,99,111,109]);
+    social.innerHTML='<span class="social-label">Connect</span><a class="social-icon" href="https://www.tiktok.com/@vickilawrence__official?_r=1&_t=ZS-9AMoHYkazci" target="_blank" rel="noopener noreferrer" aria-label="Vicki Lawrence on TikTok" title="TikTok"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.4 4.2c.5 1.7 1.5 2.8 3.2 3.2v2.7c-1.2 0-2.3-.3-3.2-.9v5.6a5.1 5.1 0 1 1-4.5-5.1v2.8a2.3 2.3 0 1 0 1.7 2.2V4.2h2.8Z" fill="currentColor"/></svg></a><a class="social-icon" href="#" data-email-contact aria-label="Email Vicki Lawrence team" title="Email"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 5.5h17v13h-17zM4 6l8 6 8-6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></a>';
+    social.querySelector('[data-email-contact]').addEventListener('click',e=>{e.preventDefault();location.href='mailto:'+email});
+    footer.appendChild(social);
+  }
+
 })();
