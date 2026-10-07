@@ -145,12 +145,16 @@
       window.addEventListener('scroll',scroll,{passive:true});
       scroll();
 
+      const raycaster=new THREE.Raycaster();
+      const pointer=new THREE.Vector2();
       const activate=e=>{
-        const hit=objects.find(o=>{
-          const box=new THREE.Box3().setFromObject(o);
-          return box.distanceToPoint(camera.position)<5;
-        });
-        if(hit?.userData?.target && e.detail===2) location.href=hit.userData.target;
+        if(e.detail!==2) return;
+        const r=page.getBoundingClientRect();
+        pointer.x=((e.clientX-r.left)/Math.max(1,r.width))*2-1;
+        pointer.y=-((e.clientY-r.top)/Math.max(1,r.height))*2+1;
+        raycaster.setFromCamera(pointer,camera);
+        const hit=raycaster.intersectObjects(objects,false)[0]?.object;
+        if(hit?.userData?.target) location.href=hit.userData.target;
       };
       page.addEventListener('dblclick',activate);
 
