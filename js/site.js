@@ -77,40 +77,73 @@
   }
 
 
-  // Hero image carousel
+  // Hero image carousel — 6s autoplay with pause/focus/visibility/reduced-motion support.
   const carouselSlides = document.querySelectorAll('.carousel-slide');
   const carouselDots = document.getElementById('carouselDots');
+  const heroCarousel = document.getElementById('heroCarousel');
   const carouselNext = document.getElementById('carouselNext');
   const carouselPrev = document.getElementById('carouselPrev');
-  if (carouselSlides.length && carouselDots) {
+  const carouselPauseButton = document.getElementById('carouselPause');
+  if (carouselSlides.length && carouselDots && heroCarousel) {
     let currentSlide = 0;
-    let carouselTimer;
+    let carouselTimer = null;
+    let isPaused = false;
+    const AUTO_SLIDE_DELAY = 6000;
+
     carouselSlides.forEach((_, index) => {
       const dot = document.createElement('button');
       dot.className = 'carousel-dot' + (index === 0 ? ' active' : '');
-      dot.setAttribute('aria-label', 'Go to slide ' + (index + 1));
       dot.type = 'button';
-      dot.addEventListener('click', () => goToSlide(index, true));
+      dot.setAttribute('aria-label', 'Go to slide ' + (index + 1));
+      dot.addEventListener('click', () => { goToSlide(index); restartAutoSlide(); });
       carouselDots.appendChild(dot);
     });
-    function goToSlide(index, restart = false) {
+
+    function goToSlide(index) {
       carouselSlides[currentSlide].classList.remove('active');
-      carouselDots.children[currentSlide].classList.remove('active');
+      carouselDots.children[currentSlide]?.classList.remove('active');
       currentSlide = (index + carouselSlides.length) % carouselSlides.length;
       carouselSlides[currentSlide].classList.add('active');
-      carouselDots.children[currentSlide].classList.add('active');
-      if (restart) restartCarousel();
+      carouselDots.children[currentSlide]?.classList.add('active');
     }
     function nextSlide(){ goToSlide(currentSlide + 1); }
     function previousSlide(){ goToSlide(currentSlide - 1); }
-    function startCarousel(){
-      if (reduce || carouselSlides.length < 2) return;
-      carouselTimer = setInterval(nextSlide, 6000);
+    function startAutoSlide(){
+      if (reduce || isPaused || carouselSlides.length < 2 || document.hidden) return;
+      stopAutoSlide();
+      carouselTimer = window.setInterval(nextSlide, AUTO_SLIDE_DELAY);
     }
-    function restartCarousel(){ clearInterval(carouselTimer); startCarousel(); }
-    carouselNext?.addEventListener('click', () => { nextSlide(); restartCarousel(); });
-    carouselPrev?.addEventListener('click', () => { previousSlide(); restartCarousel(); });
-    startCarousel();
+    function stopAutoSlide(){
+      if (carouselTimer){ window.clearInterval(carouselTimer); carouselTimer = null; }
+    }
+    function restartAutoSlide(){ stopAutoSlide(); startAutoSlide(); }
+
+    carouselNext?.addEventListener('click', () => { nextSlide(); restartAutoSlide(); });
+    carouselPrev?.addEventListener('click', () => { previousSlide(); restartAutoSlide(); });
+
+    heroCarousel.addEventListener('mouseenter', stopAutoSlide);
+    heroCarousel.addEventListener('mouseleave', startAutoSlide);
+    heroCarousel.addEventListener('focusin', stopAutoSlide);
+    heroCarousel.addEventListener('focusout', event => {
+      if (!heroCarousel.contains(event.relatedTarget)) startAutoSlide();
+    });
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) stopAutoSlide(); else startAutoSlide();
+    });
+
+    carouselPauseButton?.addEventListener('click', () => {
+      isPaused = !isPaused;
+      if (isPaused) {
+        stopAutoSlide();
+        carouselPauseButton.textContent = '▶';
+        carouselPauseButton.setAttribute('aria-label', 'Play carousel');
+      } else {
+        carouselPauseButton.textContent = '⏸';
+        carouselPauseButton.setAttribute('aria-label', 'Pause carousel');
+        startAutoSlide();
+      }
+    });
+    startAutoSlide();
   }
 
   // Fan experience UI is intentionally preview-only until official authorization and secure backend workflows exist.
