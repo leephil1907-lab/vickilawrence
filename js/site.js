@@ -27,6 +27,25 @@
     }));
   }
 
+  // Public announcements published from the private control center.
+  async function loadAnnouncements() {
+    const feed = document.getElementById('announcementFeed');
+    const wrap = document.getElementById('liveAnnouncements');
+    const cfg = window.VL_PUBLIC_CONFIG || {};
+    if (!feed || !wrap || !cfg.supabaseUrl || !cfg.supabasePublishableKey || !window.supabase?.createClient) return;
+    try {
+      const client = window.supabase.createClient(cfg.supabaseUrl, cfg.supabasePublishableKey);
+      const q = await client.from('announcements').select('id,title,body,image_url,button_text,button_url').eq('status','published').or('placement.eq.homepage,placement.eq.both').order('created_at',{ascending:false}).limit(3);
+      if (q.error || !q.data?.length) return;
+      feed.innerHTML = q.data.map(a => '<article class="announcement-item"><div><span class="announcement-kicker">LATEST FROM THE ARCHIVE</span><h3>'+escapeHtml(a.title)+'</h3><p>'+escapeHtml(a.body)+'</p></div>' + (a.button_url ? '<a class="btn btn-gold" href="'+safeUrl(a.button_url)+'">'+escapeHtml(a.button_text||'Learn more')+'</a>' : '') + '</article>').join('');
+      wrap.hidden = false;
+    } catch (e) { console.info('Announcement feed unavailable.', e); }
+  }
+  function escapeHtml(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+  function safeUrl(value){return /^(https?:|\/|#)/i.test(String(value||'')) ? String(value) : '#'}
+
+  loadAnnouncements();
+
   const year = document.querySelector('[data-year]');
   if (year) year.textContent = new Date().getFullYear();
 
