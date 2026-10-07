@@ -37,9 +37,6 @@
   const selectedRequest = document.getElementById('selectedRequest');
   const shoutoutStatus = document.getElementById('formStatus');
   const shoutoutSubmit = document.getElementById('shoutoutSubmit');
-  const paymentArea = document.getElementById('paymentArea');
-  const paymentButton = document.getElementById('paymentButton');
-  const configuredPaymentLink = '';
 
   if (shoutoutType && selectedRequest) {
     shoutoutType.addEventListener('change', () => {
@@ -70,11 +67,6 @@
         shoutoutStatus.textContent = 'Thank you. Your request has been submitted for review.';
         shoutoutForm.reset();
         if (selectedRequest) selectedRequest.textContent = 'Select a request type';
-        if (paymentArea) paymentArea.hidden = !configuredPaymentLink;
-        if (paymentButton && configuredPaymentLink) {
-          paymentButton.href = configuredPaymentLink;
-          paymentButton.hidden = false;
-        }
       } catch (error) {
         shoutoutStatus.className = 'form-status error';
         shoutoutStatus.textContent = 'Something went wrong. Please try again or contact support.';
@@ -84,20 +76,60 @@
     });
   }
 
+
+  // Hero image carousel
+  const carouselSlides = document.querySelectorAll('.carousel-slide');
+  const carouselDots = document.getElementById('carouselDots');
+  const carouselNext = document.getElementById('carouselNext');
+  const carouselPrev = document.getElementById('carouselPrev');
+  if (carouselSlides.length && carouselDots) {
+    let currentSlide = 0;
+    let carouselTimer;
+    carouselSlides.forEach((_, index) => {
+      const dot = document.createElement('button');
+      dot.className = 'carousel-dot' + (index === 0 ? ' active' : '');
+      dot.setAttribute('aria-label', 'Go to slide ' + (index + 1));
+      dot.type = 'button';
+      dot.addEventListener('click', () => goToSlide(index, true));
+      carouselDots.appendChild(dot);
+    });
+    function goToSlide(index, restart = false) {
+      carouselSlides[currentSlide].classList.remove('active');
+      carouselDots.children[currentSlide].classList.remove('active');
+      currentSlide = (index + carouselSlides.length) % carouselSlides.length;
+      carouselSlides[currentSlide].classList.add('active');
+      carouselDots.children[currentSlide].classList.add('active');
+      if (restart) restartCarousel();
+    }
+    function nextSlide(){ goToSlide(currentSlide + 1); }
+    function previousSlide(){ goToSlide(currentSlide - 1); }
+    function startCarousel(){
+      if (reduce || carouselSlides.length < 2) return;
+      carouselTimer = setInterval(nextSlide, 6000);
+    }
+    function restartCarousel(){ clearInterval(carouselTimer); startCarousel(); }
+    carouselNext?.addEventListener('click', () => { nextSlide(); restartCarousel(); });
+    carouselPrev?.addEventListener('click', () => { previousSlide(); restartCarousel(); });
+    startCarousel();
+  }
+
   // Fan experience UI is intentionally preview-only until official authorization and secure backend workflows exist.
   const cardForm = document.getElementById('cardForm');
   if (cardForm) {
     const memberName = document.getElementById('memberName');
     const memberPlan = document.getElementById('memberPlan');
     const cardName = document.getElementById('cardName');
-    const cardPlan = document.getElementById('cardPlan');
+    const cardTier = document.getElementById('cardTier');
     const cardId = document.getElementById('cardId');
+    const cardExpiry = document.getElementById('cardExpiry');
+    const cardQr = document.getElementById('cardQr');
     cardForm.addEventListener('submit', event => {
       event.preventDefault();
-      cardName.textContent = memberName.value.trim();
-      cardPlan.textContent = memberPlan.value;
+      cardName.textContent = memberName.value.trim() || 'Fan Member';
+      cardTier.textContent = memberPlan.value;
       cardId.textContent = 'VL-PREVIEW';
-      document.getElementById('qrBox').textContent = 'PREVIEW';
+      cardExpiry.textContent = '—';
+      cardQr.textContent = 'PREVIEW';
     });
   }
 
