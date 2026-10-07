@@ -72,7 +72,7 @@ create table if not exists public.invoices (
   invoice_number text unique not null,
   client_name text not null,
   client_email text,
-  currency text not null default 'USD',
+  currency text not null default 'USD' check (currency in ('USD','EUR')),
   subtotal numeric(12,2) not null default 0,
   tax numeric(12,2) not null default 0,
   total numeric(12,2) not null default 0,
