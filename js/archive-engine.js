@@ -47,6 +47,13 @@
     }
   }
 
+  async function dynamicNews(){
+    const mount=document.querySelector('[data-news-live]');if(!mount||!client)return;
+    const {data}=await client.from('announcements').select('id,title,body,image_url,created_at,button_text,button_url').in('placement',['news','both']).eq('status','published').order('created_at',{ascending:false}).limit(12);
+    if(!data?.length){mount.innerHTML='<div class="dynamic-empty">The press room is ready for verified announcements. Published updates will appear here automatically.</div>';return}
+    mount.innerHTML=data.map(a=>'<article class="dynamic-event"><div class="dynamic-date">'+new Date(a.created_at).toLocaleDateString(undefined,{month:'short',day:'numeric'})+'</div><div><span class="announcement-kicker">VERIFIED ARCHIVE UPDATE</span><h3>'+esc(a.title)+'</h3><p>'+esc(a.body)+'</p>'+(a.button_url?'<a class="btn btn-outline" href="'+url(a.button_url)+'">'+esc(a.button_text||'Read more')+'</a>':'')+'</div></article>').join('');
+  }
+
   async function dynamicEvents(){
     const mount=document.querySelector('[data-events-live]');if(!mount||!client)return;
     const {data}=await client.from('events').select('id,title,description,location,starts_at,image_url,rsvp_url').eq('status','published').gte('starts_at',new Date().toISOString()).order('starts_at',{ascending:true}).limit(12);
@@ -81,7 +88,7 @@
   }
 
   function boot(){
-    mountLiveRail();mountDynamicDock();injectRealtimeBanner();mount3D();dynamicHome();dynamicEvents();dynamicGallery();realtime();
+    mountLiveRail();mountDynamicDock();injectRealtimeBanner();mount3D();dynamicHome();dynamicNews();dynamicEvents();dynamicGallery();realtime();
     document.body.classList.add('archive-runtime');
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
