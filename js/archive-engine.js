@@ -75,6 +75,8 @@
     box.querySelector('button').onclick=()=>box.remove();box.onclick=e=>{if(e.target===box)box.remove()};document.body.appendChild(box);
   }
 
+  function startCountdowns(){document.querySelectorAll('[data-countdown]').forEach(el=>{const t=()=>{const d=new Date(el.dataset.countdown)-new Date();if(d<=0){el.textContent='Now';return}const days=Math.floor(d/86400000),hrs=Math.floor(d%86400000/3600000),mins=Math.floor(d%3600000/60000),secs=Math.floor(d%60000/1000);el.textContent=days+'d '+hrs+'h '+mins+'m '+secs+'s'};t();setInterval(t,1000)})}
+
   function realtime(){
     if(!client)return;
     client.channel('archive-live').on('postgres_changes',{event:'*',schema:'public',table:'announcements'},()=>{dynamicHome();dynamicNews()}).on('postgres_changes',{event:'*',schema:'public',table:'events'},()=>dynamicEvents()).on('postgres_changes',{event:'*',schema:'public',table:'gallery_items'},()=>dynamicGallery()).subscribe();
@@ -88,7 +90,7 @@
   }
 
   function boot(){
-    mountLiveRail();mountDynamicDock();injectRealtimeBanner();mount3D();dynamicHome();dynamicNews();dynamicEvents();dynamicGallery();realtime();
+    mountLiveRail();mountDynamicDock();injectRealtimeBanner();mount3D();dynamicHome();dynamicNews();dynamicEvents();dynamicGallery();startCountdowns();realtime();
     import('./archive-world.js').catch(()=>{});
     document.body.classList.add('archive-runtime');
   }
