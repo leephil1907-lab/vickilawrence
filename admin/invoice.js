@@ -8,6 +8,7 @@ function build(){let subtotal=0;$('pItems').innerHTML='';items.querySelectorAll(
 $('addItem').onclick=()=>addItem();items.onclick=e=>{if(e.target.classList.contains('remove'))e.target.closest('.invoice-item').remove()};
 $('generate').onclick=()=>{build();$('saveStatus').textContent='Invoice preview updated. Issue only after official approval.'};
 $('print').onclick=()=>{build();window.print()};
+$('downloadPdf').onclick=async()=>{build();if(!window.html2pdf){alert('PDF exporter is unavailable. Use Print / Save PDF.');return}const safe=($('invoiceNumber').value||'invoice').replace(/[^a-z0-9_-]/gi,'-');await window.html2pdf().set({margin:0.35,filename:safe+'.pdf',image:{type:'jpeg',quality:0.96},html2canvas:{scale:2,useCORS:true},jsPDF:{unit:'in',format:'a4',orientation:'portrait'}}).from(document.getElementById('invoicePreview')).save()};
 $('email').onclick=()=>{build();const to=encodeURIComponent($('clientEmail').value||''),subject=encodeURIComponent('Invoice '+$('invoiceNumber').value+' — Vicki Lawrence special request'),body=encodeURIComponent('Hello '+($('clientName').value||'')+',\n\nPlease find your invoice '+$('invoiceNumber').value+'.\nTotal due: '+$('pTotal').textContent+'\nDue date: '+$('dueDate').value+'\n\nPlease use the payment instructions on the invoice.');window.location.href='mailto:'+to+'?subject='+subject+'&body='+body};
 $('invoiceNumber').value='VL-INV-'+String(Date.now()).slice(-6);$('issueDate').value=today();$('dueDate').value=today(7);addItem('Video Shoutout',1,0);build();
 })();
