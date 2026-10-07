@@ -1,5 +1,5 @@
 (() => {
-  const CONFIG={url:'',publishableKey:''};
+  const CONFIG=window.VL_ADMIN_CONFIG||{url:'',publishableKey:''};
   const loginView=document.getElementById('loginView'), appView=document.getElementById('appView'), loginForm=document.getElementById('loginForm'), loginError=document.getElementById('loginError');
   const list=document.getElementById('conversationList'), messages=document.getElementById('threadMessages'), active=document.getElementById('activeThread'), empty=document.getElementById('emptyThread'), title=document.getElementById('threadTitle'), meta=document.getElementById('threadMeta'), replyForm=document.getElementById('replyForm'), replyInput=document.getElementById('replyInput'), statusSelect=document.getElementById('statusSelect'), agentEmail=document.getElementById('agentEmail');
   if(!CONFIG.url||!CONFIG.publishableKey){loginError.textContent='Connect the Supabase project configuration before using this console.';loginForm.querySelector('button').disabled=true;return;}
