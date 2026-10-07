@@ -26,7 +26,7 @@
     const title=document.querySelector('.language-label');if(title)title.textContent=d.language;
     document.querySelectorAll('[data-lang-option]').forEach(o=>o.setAttribute('aria-current',o.dataset.langOption===lang?'true':'false'));
   };
-  const mount=()=>{
+  const mount=()=>{ const style=document.createElement('style'); style.textContent='.language-switcher{display:flex;align-items:center}.language-select{border:1px solid rgba(31,78,140,.18);border-radius:999px;background:rgba(255,255,255,.58);color:#143a68;padding:8px 28px 8px 12px;font:600 11px system-ui;outline:none}.language-select:focus{box-shadow:0 0 0 3px rgba(31,78,140,.12)}html[dir="rtl"] .language-select{direction:rtl}'; document.head.appendChild(style);
     const nav=document.querySelector('.site-nav'); if(nav&&!nav.querySelector('.language-switcher')){
       const wrap=document.createElement('div');wrap.className='language-switcher';
       const select=document.createElement('select');select.setAttribute('aria-label',t().language);select.className='language-select';
