@@ -65,3 +65,13 @@
 @media(prefers-reduced-motion:reduce){.archive-world-canvas,.archive-world-glow{display:none}}
 
 .newsletter-panel{display:grid;grid-template-columns:1.15fr .85fr;gap:40px;padding:42px}.newsletter-form{display:grid;gap:12px;align-content:center}.newsletter-form input{width:100%;padding:15px 16px;border:1px solid rgba(31,78,140,.18);border-radius:12px;background:#fff;font:inherit}.newsletter-form .btn{width:max-content}.cookie-banner{position:fixed;z-index:9999;left:20px;right:20px;bottom:20px;display:flex;align-items:center;gap:14px;padding:16px 18px;border:1px solid rgba(31,78,140,.18);border-radius:18px;background:rgba(255,255,255,.94);backdrop-filter:blur(16px);box-shadow:0 20px 70px rgba(20,58,104,.18)}.cookie-banner>div{flex:1}.cookie-banner p{margin:4px 0 0;color:var(--muted);font-size:13px}@media(max-width:760px){.newsletter-panel{grid-template-columns:1fr;padding:26px}.cookie-banner{flex-wrap:wrap}.cookie-banner>div{flex-basis:100%}}
+
+/* Archive-world experience layer */
+.archive-world-canvas{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:.94}
+.archive-world-glow{position:absolute;width:260px;height:260px;border-radius:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:1;background:radial-gradient(circle,rgba(242,193,91,.13),transparent 68%);mix-blend-mode:screen;filter:blur(4px)}
+.archive-world-label{position:absolute;right:28px;top:110px;z-index:4;display:grid;gap:4px;text-align:right;pointer-events:none;font-family:var(--sans)}
+.archive-world-label span{font-size:9px;letter-spacing:.22em;color:var(--gold);font-weight:800}
+.archive-world-label strong{font-family:var(--serif);font-size:16px;letter-spacing:.08em;color:var(--deep)}
+.route-page>*:not(.archive-world-canvas):not(.archive-world-glow):not(.archive-world-label){position:relative}
+@media(max-width:700px){.archive-world-label{right:16px;top:92px}.archive-world-label strong{font-size:12px}.archive-world-glow{width:180px;height:180px}}
+@media(prefers-reduced-motion:reduce){.archive-world-canvas,.archive-world-glow{display:none}}
