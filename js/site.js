@@ -30,6 +30,74 @@
   const year = document.querySelector('[data-year]');
   if (year) year.textContent = new Date().getFullYear();
 
+
+  // Fan experience UI is intentionally preview-only until official authorization and secure backend workflows exist.
+  const cardForm = document.getElementById('cardForm');
+  if (cardForm) {
+    const memberName = document.getElementById('memberName');
+    const memberPlan = document.getElementById('memberPlan');
+    const cardName = document.getElementById('cardName');
+    const cardPlan = document.getElementById('cardPlan');
+    const cardId = document.getElementById('cardId');
+    cardForm.addEventListener('submit', event => {
+      event.preventDefault();
+      cardName.textContent = memberName.value.trim();
+      cardPlan.textContent = memberPlan.value;
+      cardId.textContent = 'VL-PREVIEW';
+      document.getElementById('qrBox').textContent = 'PREVIEW';
+    });
+  }
+
+  const requestType = document.getElementById('requestType');
+  document.querySelectorAll('.request-option').forEach(button => {
+    button.addEventListener('click', () => {
+      document.querySelectorAll('.request-option').forEach(item => item.classList.remove('active'));
+      button.classList.add('active');
+      if (requestType) requestType.value = button.dataset.request || '';
+    });
+  });
+
+  const requestForm = document.getElementById('requestForm');
+  if (requestForm) requestForm.addEventListener('submit', event => {
+    event.preventDefault();
+    const button = requestForm.querySelector('button[type="submit"]');
+    if (button) {
+      const original = button.textContent;
+      button.textContent = 'Request Prepared — Pending Review';
+      button.disabled = true;
+      window.setTimeout(() => { button.textContent = original; button.disabled = false; }, 2200);
+    }
+  });
+
+  const newsletterForm = document.getElementById('newsletterForm');
+  if (newsletterForm) newsletterForm.addEventListener('submit', event => {
+    event.preventDefault();
+    const button = newsletterForm.querySelector('button[type="submit"]');
+    if (button) {
+      const original = button.textContent;
+      button.textContent = 'Subscription Prepared';
+      button.disabled = true;
+      window.setTimeout(() => { button.textContent = original; button.disabled = false; }, 2200);
+    }
+  });
+
+  document.querySelectorAll('.join-btn').forEach(button => {
+    button.addEventListener('click', () => {
+      const plan = button.dataset.plan || 'Fan';
+      const select = document.getElementById('memberPlan');
+      if (select) select.value = plan;
+      document.getElementById('membership-card')?.scrollIntoView({behavior: reduce ? 'auto' : 'smooth'});
+    });
+  });
+
+  document.querySelectorAll('.paid-plan').forEach(button => {
+    button.addEventListener('click', event => {
+      event.preventDefault();
+      const target = document.getElementById('membership-card');
+      target?.scrollIntoView({behavior: reduce ? 'auto' : 'smooth'});
+    });
+  });
+
   const scene = document.querySelector('.scene');
 
   async function mountThreeScene() {
