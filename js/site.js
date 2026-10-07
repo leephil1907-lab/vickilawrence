@@ -387,4 +387,6 @@
     footer.appendChild(social);
   }
 
+  import('./cinematic.js').catch(() => {});
+
 })();
