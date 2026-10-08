@@ -1,6 +1,10 @@
 (() => {
   const $ = (id) => document.getElementById(id);
   const items = $('items');
+  const sb = window.supabase && window.VL_ADMIN_CONFIG
+    ? window.supabase.createClient(window.VL_ADMIN_CONFIG.supabaseUrl, window.VL_ADMIN_CONFIG.supabasePublishableKey)
+    : null;
+  let editingInvoiceId = new URLSearchParams(window.location.search).get('id');
   const sym = { USD: '$', EUR: '€' };
 
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({
@@ -31,6 +35,61 @@
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     });
+  }
+
+  function getPayload() {
+    const built = build();
+    const currency = $('currency').value;
+    return {
+      id: editingInvoiceId || undefined,
+      invoice_number: $('invoiceNumber').value.trim(),
+      request_id: new URLSearchParams(window.location.search).get('request_id') || null,
+      seller_name: $('sellerName').value.trim(),
+      seller_email: $('sellerEmail').value.trim() || null,
+      seller_address: $('sellerAddress').value.trim() || null,
+      client_name: $('clientName').value.trim(),
+      client_email: $('clientEmail').value.trim() || null,
+      client_address: $('clientAddress').value.trim() || null,
+      currency,
+      issue_date: $('issueDate').value,
+      due_date: $('dueDate').value || null,
+      subtotal: built.subtotal,
+      tax: built.tax,
+      total: built.total,
+      status: $('invoiceStatus').value,
+      payment_instructions: $('paymentInstructions').value.trim() || null
+    };
+  }
+
+  async function saveInvoice() {
+    if (!sb) throw new Error('Supabase is unavailable.');
+    const payload = getPayload();
+    if (!payload.client_name) throw new Error('Client name is required.');
+    if (!payload.invoice_number) throw new Error('Invoice number is required.');
+
+    const { data, error } = editingInvoiceId
+      ? await sb.from('invoices').update(payload).eq('id', editingInvoiceId).select('id,invoice_number').single()
+      : await sb.from('invoices').insert(payload).select('id,invoice_number').single();
+
+    if (error) throw error;
+    editingInvoiceId = data.id;
+    history.replaceState(null, '', 'admin.html?id=' + encodeURIComponent(data.id));
+    $('saveStatus').textContent = 'Saved invoice ' + data.invoice_number + '.';
+    return data;
+  }
+
+  async function loadInvoice() {
+    if (!editingInvoiceId || !sb) return;
+    const { data, error } = await sb.from('invoices').select('*').eq('id', editingInvoiceId).single();
+    if (error) { $('saveStatus').textContent = 'Could not load invoice: ' + error.message; return; }
+    ['invoiceNumber','sellerName','sellerEmail','sellerAddress','clientName','clientEmail','clientAddress',
+     'issueDate','dueDate','paymentInstructions','invoiceStatus','currency'].forEach((id) => {
+      const map = { invoiceNumber:'invoice_number', sellerName:'seller_name', sellerEmail:'seller_email', sellerAddress:'seller_address',
+        clientName:'client_name', clientEmail:'client_email', clientAddress:'client_address', issueDate:'issue_date',
+        dueDate:'due_date', paymentInstructions:'payment_instructions', invoiceStatus:'status', currency:'currency' };
+      if (data[map[id]] != null) $(id).value = data[map[id]];
+    });
+    build();
   }
 
   function build() {
@@ -83,9 +142,13 @@
     }
   });
 
-  $('generate').addEventListener('click', () => {
-    build();
-    $('saveStatus').textContent = 'Invoice preview updated. Issue only after official approval.';
+  $('generate').addEventListener('click', async () => {
+    try {
+      await saveInvoice();
+      $('saveStatus').textContent = 'Invoice saved successfully.';
+    } catch (error) {
+      $('saveStatus').textContent = 'Save failed: ' + (error.message || error);
+    }
   });
 
   $('print').addEventListener('click', () => {
@@ -129,10 +192,13 @@
   $('currency').addEventListener('change', build);
   $('taxRate').addEventListener('input', build);
   $('invoiceStatus').addEventListener('change', build);
+  $('clientName').addEventListener('input', build);
+  $('clientEmail').addEventListener('input', build);
 
   $('invoiceNumber').value = 'VL-INV-' + String(Date.now()).slice(-6);
   $('issueDate').value = today();
   $('dueDate').value = today(7);
   addItem('Video Shoutout', 1, 0);
+  loadInvoice();
   build();
 })();
