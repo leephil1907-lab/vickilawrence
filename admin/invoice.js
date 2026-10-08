@@ -5,6 +5,7 @@
     ? window.supabase.createClient(window.VL_ADMIN_CONFIG.supabaseUrl, window.VL_ADMIN_CONFIG.supabasePublishableKey)
     : null;
   let editingInvoiceId = new URLSearchParams(window.location.search).get('id');
+  let editingRequestId = new URLSearchParams(window.location.search).get('request_id');
   const sym = { USD: '$', EUR: '€' };
 
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({
@@ -43,7 +44,7 @@
     return {
       id: editingInvoiceId || undefined,
       invoice_number: $('invoiceNumber').value.trim(),
-      request_id: new URLSearchParams(window.location.search).get('request_id') || null,
+      request_id: editingRequestId || null,
       client_name: $('clientName').value.trim(),
       client_email: $('clientEmail').value.trim() || null,
       client_address: $('clientAddress').value.trim() || null,
@@ -96,6 +97,11 @@
     if (!editingInvoiceId || !sb) return;
     const { data, error } = await sb.from('invoices').select('*').eq('id', editingInvoiceId).single();
     if (error) { $('saveStatus').textContent = 'Could not load invoice: ' + error.message; return; }
+    editingRequestId = data.request_id || null;
+    items.innerHTML = '';
+    const itemQuery = await sb.from('invoice_items').select('description,quantity,rate,sort_order').eq('invoice_id', editingInvoiceId).order('sort_order', { ascending: true });
+    if (!itemQuery.error && itemQuery.data?.length) itemQuery.data.forEach(item => addItem(item.description, item.quantity, item.rate));
+    else addItem('', 1, 0);
     ['invoiceNumber','sellerName','sellerEmail','sellerAddress','clientName','clientEmail','clientAddress',
      'issueDate','dueDate','paymentInstructions','invoiceStatus','currency'].forEach((id) => {
       const map = { invoiceNumber:'invoice_number', sellerName:'seller_name', sellerEmail:'seller_email', sellerAddress:'seller_address',
