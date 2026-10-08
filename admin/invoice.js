@@ -44,9 +44,6 @@
       id: editingInvoiceId || undefined,
       invoice_number: $('invoiceNumber').value.trim(),
       request_id: new URLSearchParams(window.location.search).get('request_id') || null,
-      seller_name: $('sellerName').value.trim(),
-      seller_email: $('sellerEmail').value.trim() || null,
-      seller_address: $('sellerAddress').value.trim() || null,
       client_name: $('clientName').value.trim(),
       client_email: $('clientEmail').value.trim() || null,
       client_address: $('clientAddress').value.trim() || null,
@@ -67,12 +64,29 @@
     if (!payload.client_name) throw new Error('Client name is required.');
     if (!payload.invoice_number) throw new Error('Invoice number is required.');
 
-    const { data, error } = editingInvoiceId
-      ? await sb.from('invoices').update(payload).eq('id', editingInvoiceId).select('id,invoice_number').single()
-      : await sb.from('invoices').insert(payload).select('id,invoice_number').single();
+    const { id, ...invoicePayload } = payload;
+    const { data, error } = id
+      ? await sb.from('invoices').update(invoicePayload).eq('id', id).select('id,invoice_number').single()
+      : await sb.from('invoices').insert(invoicePayload).select('id,invoice_number').single();
 
     if (error) throw error;
     editingInvoiceId = data.id;
+
+    const lineItems = [...items.querySelectorAll('.invoice-item')].map((row, index) => ({
+      invoice_id: data.id,
+      description: row.querySelector('.desc').value.trim(),
+      quantity: Number(row.querySelector('.qty').value || 0),
+      rate: Number(row.querySelector('.rate').value || 0),
+      line_total: Number(row.querySelector('.qty').value || 0) * Number(row.querySelector('.rate').value || 0),
+      sort_order: index
+    })).filter((item) => item.description && item.quantity > 0);
+
+    const { error: deleteError } = await sb.from('invoice_items').delete().eq('invoice_id', data.id);
+    if (deleteError) throw deleteError;
+    if (lineItems.length) {
+      const { error: itemError } = await sb.from('invoice_items').insert(lineItems);
+      if (itemError) throw itemError;
+    }
     history.replaceState(null, '', 'admin.html?id=' + encodeURIComponent(data.id));
     $('saveStatus').textContent = 'Saved invoice ' + data.invoice_number + '.';
     return data;
