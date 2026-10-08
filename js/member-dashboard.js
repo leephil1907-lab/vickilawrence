@@ -20,8 +20,8 @@
     const pill=document.querySelector('[data-account-status-pill]');if(pill)pill.textContent=u.email_confirmed_at?'Verified':'Verification pending';
     const form=document.getElementById('memberProfileForm');if(form){form.full_name.value=name;form.country.value=p.country||'';form.language.value=p.language||'en'}
     const membership=(await client.from('memberships').select('*').eq('user_id',u.id).eq('status','active').order('created_at',{ascending:false}).limit(1).maybeSingle()).data;
-    const tier=membership?.tier||'archive';const labels={archive:'ARCHIVE MEMBER',inner_circle:"MAMA'S INNER CIRCLE",vip_legacy:'VIP LEGACY'};const tierLabel=labels[tier]||'ARCHIVE MEMBER';
-    setText('[data-card-tier]',tierLabel);setText('[data-card-name]',name);setText('[data-card-id]',membership?.member_number||'VL-000000');setText('[data-card-expiry]',membership?.ends_at?new Date(membership.ends_at).toLocaleDateString(undefined,{month:'short',year:'numeric'}):'—');
+    const tier=membership?.tier||'archive';const labels={archive:'ARCHIVE MEMBER',vip_bronze:'VIP BRONZE',vip_silver:'VIP SILVER',vip_gold:'VIP GOLD',vip_diamond:'VIP DIAMOND'};const tierLabel=labels[tier]||'ARCHIVE MEMBER';
+    setText('[data-card-tier]',tierLabel);setText('[data-card-name]',name);setText('[data-card-id]',membership?.member_number||'VL-VIP-000000');setText('[data-card-expiry]',membership?.ends_at?new Date(membership.ends_at).toLocaleDateString(undefined,{month:'short',year:'numeric'}):'—');
     setText('[data-card-note]',membership?'Active membership access':'Account access card');
     const panel=document.querySelector('[data-membership-panel>div:first-child]');if(panel&&membership){panel.innerHTML='<span class="status-pill">'+esc(tierLabel)+'</span><h3>Membership active</h3><p>Your personalized access card is linked to this account.</p>'}
     const formEl=document.getElementById('memberProfileForm');
