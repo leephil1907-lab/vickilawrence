@@ -315,3 +315,27 @@ alter publication supabase_realtime add table public.works;
 alter publication supabase_realtime add table public.products;
 alter publication supabase_realtime add table public.fan_posts;
 alter publication supabase_realtime add table public.notifications;
+
+
+-- Personalized member accounts and premium access cards.
+create table if not exists public.member_profiles (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  full_name text not null default '', country text,
+  language text not null default 'en' check (language in ('en','es','fr','de','pt','it','ja','ko','zh','ar')),
+  avatar_url text, created_at timestamptz not null default now(), updated_at timestamptz not null default now()
+);
+create table if not exists public.memberships (
+  id uuid primary key default gen_random_uuid(), user_id uuid not null references auth.users(id) on delete cascade,
+  tier text not null check (tier in ('archive','inner_circle','vip_legacy')),
+  status text not null default 'pending' check (status in ('pending','active','paused','expired','cancelled')),
+  member_number text unique not null, starts_at timestamptz, ends_at timestamptz,
+  created_at timestamptz not null default now(), updated_at timestamptz not null default now()
+);
+alter table public.member_profiles enable row level security;
+alter table public.memberships enable row level security;
+create policy "members read own profile" on public.member_profiles for select to authenticated using (user_id=(select auth.uid()));
+create policy "members insert own profile" on public.member_profiles for insert to authenticated with check (user_id=(select auth.uid()));
+create policy "members update own profile" on public.member_profiles for update to authenticated using (user_id=(select auth.uid())) with check (user_id=(select auth.uid()));
+create policy "admins manage member profiles" on public.member_profiles for all to authenticated using ((select auth.jwt()->'app_metadata'->>'role')='admin') with check ((select auth.jwt()->'app_metadata'->>'role')='admin');
+create policy "members read own memberships" on public.memberships for select to authenticated using (user_id=(select auth.uid()));
+create policy "admins manage memberships" on public.memberships for all to authenticated using ((select auth.jwt()->'app_metadata'->>'role')='admin') with check ((select auth.jwt()->'app_metadata'->>'role')='admin');
