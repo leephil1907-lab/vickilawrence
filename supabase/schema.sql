@@ -326,7 +326,7 @@ create table if not exists public.member_profiles (
 );
 create table if not exists public.memberships (
   id uuid primary key default gen_random_uuid(), user_id uuid not null references auth.users(id) on delete cascade,
-  tier text not null check (tier in ('archive','inner_circle','vip_legacy')),
+  tier text not null check (tier in ('archive','bronze','silver','gold','diamond')),
   status text not null default 'pending' check (status in ('pending','active','paused','expired','cancelled')),
   member_number text unique not null, starts_at timestamptz, ends_at timestamptz,
   created_at timestamptz not null default now(), updated_at timestamptz not null default now()
